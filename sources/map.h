@@ -2,7 +2,7 @@
 #define MAP_MINE
 
     int chargerChunk(char *cheminDossier, Chunk *chunk, int x, int z);
-    void dessinerChunk(Chunk *chunk, GLuint texture);
+    void dessinerChunk(Map *map, GLuint texture, int indiceChunk);
     void dessinerMap(Map *map, GLuint texture, int distanceRendue);
     void sauvegarderMapF(char *chemin, Chunk Terrain);
     void sauvegarderMap(char *cheminDossier, Map *map);
