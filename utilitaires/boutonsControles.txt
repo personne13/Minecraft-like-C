@@ -1,0 +1,84 @@
+nombreBoutons = 14
+boutons0.weight = 170
+boutons0.height = 35
+boutons0.posX = 80
+boutons0.posY = 100
+boutons0.texte = Attack
+
+boutons1.weight = 170
+boutons1.height = 35
+boutons1.posX = 400
+boutons1.posY = 100
+boutons1.texte = Use Item
+
+boutons2.weight = 170
+boutons2.height = 35
+boutons2.posX = 80
+boutons2.posY = 145
+boutons2.texte = Forward
+
+boutons3.weight = 170
+boutons3.height = 35
+boutons3.posX = 400
+boutons3.posY = 145
+boutons3.texte = Left
+
+boutons4.weight = 170
+boutons4.height = 35
+boutons4.posX = 80
+boutons4.posY = 190
+boutons4.texte = Back
+
+boutons5.weight = 170
+boutons5.height = 35
+boutons5.posX = 400
+boutons5.posY = 190
+boutons5.texte = Right
+
+boutons6.weight = 170
+boutons6.height = 35
+boutons6.posX = 80
+boutons6.posY = 235
+boutons6.texte = Jump
+
+boutons7.weight = 170
+boutons7.height = 35
+boutons7.posX = 400
+boutons7.posY = 235
+boutons7.texte = Sneak
+
+boutons8.weight = 170
+boutons8.height = 35
+boutons8.posX = 80
+boutons8.posY = 280
+boutons8.texte = Drop
+
+boutons9.weight = 170
+boutons9.height = 35
+boutons9.posX = 400
+boutons9.posY = 280
+boutons9.texte = Inventory
+
+boutons10.weight = 170
+boutons10.height = 35
+boutons10.posX = 80
+boutons10.posY = 325
+boutons10.texte = Chat
+
+boutons11.weight = 170
+boutons11.height = 35
+boutons11.posX = 400
+boutons11.posY = 325
+boutons11.texte = List Players
+
+boutons12.weight = 170
+boutons12.height = 35
+boutons12.posX = 80
+boutons12.posY = 370
+boutons12.texte = Pick Block
+
+boutons13.weight = 400
+boutons13.height = 35
+boutons13.posX = 200
+boutons13.posY = 440
+boutons13.texte = Done

@@ -1,0 +1,13 @@
+avancer = 119
+reculer = 115
+gauche = 97
+droite = 100
+attaquer = 1
+utiliser = 3
+sneak = 304
+sauter = 32
+inventaire = 101
+drop = 113
+chat = 116
+liste joueurs = 9
+prendre bloc = 2
