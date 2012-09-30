@@ -3,7 +3,10 @@
 #include "input.h"
 #include "jeu.h"
 
+#define BUFFER_OFFSET(a) ((char*)NULL + (a))
+
 extern Pave cube[NOMBRE_ENTITE];
+extern float pos;
 
 int chargerBlocs(char *chemin, Pave *bloc, int nombreBlocs)//Chargement des textures des blocs à l'aide du fichier "bloc.info"
 {
@@ -41,16 +44,18 @@ int chargerBlocs(char *chemin, Pave *bloc, int nombreBlocs)//Chargement des text
     return 1;
 }
 
-void dessinerChunk(Map *map, GLuint texture, int indiceChunk)
+void dessinerChunk(Map *map, GLuint texture, int indiceChunk, Point *pos, Point *cible)
 {
     static int x, y, z, i, indiceChunkCache = 0;
     static char facesAffichables[6] = {1, 1, 1, 1, 1, 1};
+    static double xCube = 0, yCube = 0, zCube = 0;
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_2D, texture);
 
     glColor3ub(178, 178, 178);
 
-    for(y = 0; y < TAILLECHUNK_Y && y <map->chunk[indiceChunk].hauteurMax; y++)
+    for(y = 0; y < TAILLECHUNK_Y && y < map->chunk[indiceChunk].hauteurMax; y++)
     {
         for(x = 0; x < TAILLECHUNK_X; x++)
         {
@@ -58,99 +63,107 @@ void dessinerChunk(Map *map, GLuint texture, int indiceChunk)
             {
                 if(map->chunk[indiceChunk].entite[x][y][z] != 0 && map->chunk[indiceChunk].entite[x][y][z] != 20 && map->chunk[indiceChunk].entite[x][y][z] != 18)//Affichage des blocs non-transparents
                 {
-                    glPushMatrix();
-                    glTranslated(x, y, z);
+                    xCube = cube[map->chunk[indiceChunk].entite[x][y][z]].face[0].bas1.x + map->chunk[indiceChunk].posX * TAILLECHUNK_X + x;
+                    yCube = cube[map->chunk[indiceChunk].entite[x][y][z]].face[0].bas1.y + y;
+                    zCube = cube[map->chunk[indiceChunk].entite[x][y][z]].face[0].bas1.z + map->chunk[indiceChunk].posZ * TAILLECHUNK_Z + z;
 
-                    if(z > 0)
+                    if((xCube - pos->x) * (xCube - pos->x) + (yCube - pos->y) * (yCube - pos->y) + (zCube - pos->z) * (zCube - pos->z) > (xCube - cible->x) * (xCube - cible->x) + (yCube - cible->y) * (yCube - cible->y) + (zCube - cible->z) * (zCube - cible->z))
                     {
-                        if(map->chunk[indiceChunk].entite[x][y][z - 1] != 0 && map->chunk[indiceChunk].entite[x][y][z - 1] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                        glPushMatrix();
+                        glTranslated(x, y, z);
+
+                        if(z > 0)
                         {
-                            facesAffichables[0] = 0;
-                        }
-                    }
-                    else
-                    {
-                        if(retrouverChunk(map, map->chunk[indiceChunk].posX, map->chunk[indiceChunk].posZ - 1, &indiceChunkCache))
-                        {
-                            if(map->chunk[indiceChunkCache].entite[x][y][TAILLECHUNK_Z - 1] != 0 && map->chunk[indiceChunkCache].entite[x][y][TAILLECHUNK_Z - 1] != 20 && map->chunk[indiceChunkCache].entite[x][y][TAILLECHUNK_Z - 1] != 18)
+                            if(map->chunk[indiceChunk].entite[x][y][z - 1] != 0 && map->chunk[indiceChunk].entite[x][y][z - 1] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
                             {
                                 facesAffichables[0] = 0;
                             }
                         }
-                    }
-                    if(x > 0)
-                    {
-                        if(map->chunk[indiceChunk].entite[x - 1][y][z] != 0 && map->chunk[indiceChunk].entite[x - 1][y][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                        else
                         {
-                            facesAffichables[1] = 0;
+                            if(retrouverChunk(map, map->chunk[indiceChunk].posX, map->chunk[indiceChunk].posZ - 1, &indiceChunkCache))
+                            {
+                                if(map->chunk[indiceChunkCache].entite[x][y][TAILLECHUNK_Z - 1] != 0 && map->chunk[indiceChunkCache].entite[x][y][TAILLECHUNK_Z - 1] != 20 && map->chunk[indiceChunkCache].entite[x][y][TAILLECHUNK_Z - 1] != 18)
+                                {
+                                    facesAffichables[0] = 0;
+                                }
+                            }
                         }
-                    }
-                    else
-                    {
-                        if(retrouverChunk(map, map->chunk[indiceChunk].posX - 1, map->chunk[indiceChunk].posZ, &indiceChunkCache))
+                        if(x > 0)
                         {
-                            if(map->chunk[indiceChunkCache].entite[TAILLECHUNK_X - 1][y][z] != 0 && map->chunk[indiceChunkCache].entite[TAILLECHUNK_X - 1][y][z] != 20 && map->chunk[indiceChunkCache].entite[TAILLECHUNK_X - 1][y][z] != 18)
+                            if(map->chunk[indiceChunk].entite[x - 1][y][z] != 0 && map->chunk[indiceChunk].entite[x - 1][y][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
                             {
                                 facesAffichables[1] = 0;
                             }
                         }
-                    }
-                    if(z + 1 < TAILLECHUNK_Z)
-                    {
-                        if(map->chunk[indiceChunk].entite[x][y][z + 1] != 0 && map->chunk[indiceChunk].entite[x][y][z + 1] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                        else
                         {
-                            facesAffichables[2] = 0;
+                            if(retrouverChunk(map, map->chunk[indiceChunk].posX - 1, map->chunk[indiceChunk].posZ, &indiceChunkCache))
+                            {
+                                if(map->chunk[indiceChunkCache].entite[TAILLECHUNK_X - 1][y][z] != 0 && map->chunk[indiceChunkCache].entite[TAILLECHUNK_X - 1][y][z] != 20 && map->chunk[indiceChunkCache].entite[TAILLECHUNK_X - 1][y][z] != 18)
+                                {
+                                    facesAffichables[1] = 0;
+                                }
+                            }
                         }
-                    }
-                    else
-                    {
-                        if(retrouverChunk(map, map->chunk[indiceChunk].posX, map->chunk[indiceChunk].posZ + 1, &indiceChunkCache))
+                        if(z + 1 < TAILLECHUNK_Z)
                         {
-                            if(map->chunk[indiceChunkCache].entite[x][y][0] != 0 && map->chunk[indiceChunkCache].entite[x][y][0] != 20 && map->chunk[indiceChunkCache].entite[x][y][0] != 18)
+                            if(map->chunk[indiceChunk].entite[x][y][z + 1] != 0 && map->chunk[indiceChunk].entite[x][y][z + 1] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
                             {
                                 facesAffichables[2] = 0;
                             }
                         }
-                    }
-                    if(x + 1 < TAILLECHUNK_X)
-                    {
-                        if(map->chunk[indiceChunk].entite[x + 1][y][z] != 0 && map->chunk[indiceChunk].entite[x + 1][y][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                        else
                         {
-                            facesAffichables[3] = 0;
+                            if(retrouverChunk(map, map->chunk[indiceChunk].posX, map->chunk[indiceChunk].posZ + 1, &indiceChunkCache))
+                            {
+                                if(map->chunk[indiceChunkCache].entite[x][y][0] != 0 && map->chunk[indiceChunkCache].entite[x][y][0] != 20 && map->chunk[indiceChunkCache].entite[x][y][0] != 18)
+                                {
+                                    facesAffichables[2] = 0;
+                                }
+                            }
                         }
-                    }
-                    else
-                    {
-                        if(retrouverChunk(map, map->chunk[indiceChunk].posX + 1, map->chunk[indiceChunk].posZ, &indiceChunkCache))
+                        if(x + 1 < TAILLECHUNK_X)
                         {
-                            if(map->chunk[indiceChunkCache].entite[0][y][z] != 0 && map->chunk[indiceChunkCache].entite[0][y][z] != 20 && map->chunk[indiceChunkCache].entite[0][y][z] != 18)
+                            if(map->chunk[indiceChunk].entite[x + 1][y][z] != 0 && map->chunk[indiceChunk].entite[x + 1][y][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
                             {
                                 facesAffichables[3] = 0;
                             }
                         }
-                    }
-                    if(y > 0)
-                    {
-                        if(map->chunk[indiceChunk].entite[x][y - 1][z] != 0 && map->chunk[indiceChunk].entite[x][y - 1][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                        else
                         {
-                            facesAffichables[4] = 0;
+                            if(retrouverChunk(map, map->chunk[indiceChunk].posX + 1, map->chunk[indiceChunk].posZ, &indiceChunkCache))
+                            {
+                                if(map->chunk[indiceChunkCache].entite[0][y][z] != 0 && map->chunk[indiceChunkCache].entite[0][y][z] != 20 && map->chunk[indiceChunkCache].entite[0][y][z] != 18)
+                                {
+                                    facesAffichables[3] = 0;
+                                }
+                            }
                         }
-                    }
-                    if(y + 1 < TAILLECHUNK_Y)
-                    {
-                        if(map->chunk[indiceChunk].entite[x][y + 1][z] != 0 && map->chunk[indiceChunk].entite[x][y + 1][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                        if(y > 0)
                         {
-                            facesAffichables[5] = 0;
+                            if(map->chunk[indiceChunk].entite[x][y - 1][z] != 0 && map->chunk[indiceChunk].entite[x][y - 1][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                            {
+                                facesAffichables[4] = 0;
+                            }
                         }
-                    }
+                        if(y + 1 < TAILLECHUNK_Y)
+                        {
+                            if(map->chunk[indiceChunk].entite[x][y + 1][z] != 0 && map->chunk[indiceChunk].entite[x][y + 1][z] != 20 && map->chunk[indiceChunk].entite[x][y + 1][z] != 18)
+                            {
+                                facesAffichables[5] = 0;
+                            }
+                        }
 
-                    dessinerCube(map->chunk[indiceChunk].entite[x][y][z], facesAffichables);
+                        //dessinerCube(map->chunk[indiceChunk].entite[x][y][z], facesAffichables);
+                        dessinerCubeVBO(map->chunk[indiceChunk].entite[x][y][z], facesAffichables);
 
-                    for(i = 0; i < 6; i++)
-                    {
-                        facesAffichables[i] = 1;
+                        for(i = 0; i < 6; i++)
+                        {
+                            facesAffichables[i] = 1;
+                        }
+                        glPopMatrix();
                     }
-                    glPopMatrix();
                 }
             }
         }
@@ -250,7 +263,8 @@ void dessinerChunk(Map *map, GLuint texture, int indiceChunk)
                         }
                     }
 
-                    dessinerCube(map->chunk[indiceChunk].entite[x][y][z], facesAffichables);;
+                    //dessinerCube(map->chunk[indiceChunk].entite[x][y][z], facesAffichables);
+                    dessinerCubeVBO(map->chunk[indiceChunk].entite[x][y][z], facesAffichables);
 
                     for(i = 0; i < 6; i++)
                     {
@@ -337,26 +351,28 @@ void dessinerCube(int IDbloc, char facesAffichables[6])//Dessine un seul cube
     glDisable(GL_BLEND);
 }
 
-void dessinerCubeVBO(GLuint *CubeBuffers)
+void dessinerCubeVBO(int IDCube, char facesAffichables[6])
 {
+    int i;
 
+    glBindBuffer(GL_ARRAY_BUFFER, cube[IDCube - 1].IDVBO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, CubeBuffers[0]);
-    glVertexPointer( 3, GL_FLOAT, 6 * sizeof(float), ((float*)NULL + (3)) );
-    glColorPointer( 3, GL_FLOAT, 6 * sizeof(float), 0 );
+    glVertexPointer(3, GL_FLOAT, 0, BUFFER_OFFSET(0));
+    glTexCoordPointer(2, GL_FLOAT, 0, BUFFER_OFFSET(72 * sizeof(float)));
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubeBuffers[1]);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
 
-    //Activation d'utilisation des tableaux
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_COLOR_ARRAY );
+    for(i = 0; i < 6; i++)
+    {
+        if(facesAffichables[i] == 1)
+        {
+            glDrawArrays(GL_QUADS, i * 4, 4);
+        }
+    }
 
-    // Rendu de notre géométrie
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-    glDisableClientState( GL_COLOR_ARRAY );
-    glDisableClientState( GL_VERTEX_ARRAY );
-
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void initChunk(Chunk *chunk)//Met le tableau à zéro
@@ -403,7 +419,7 @@ int chargerMap(char *cheminDossier, Map *map, double posX, double posZ, int dist
     return 1;
 }
 
-void dessinerMap(Map *map, GLuint texture, int distanceRendue)
+void dessinerMap(Map *map, GLuint texture, int distanceRendue, Point *pos, Point *cible)
 {
     int i;
 
@@ -411,7 +427,7 @@ void dessinerMap(Map *map, GLuint texture, int distanceRendue)
     {
         glPushMatrix();
         glTranslated(map->chunk[i].posX * TAILLECHUNK_X, 0, map->chunk[i].posZ * TAILLECHUNK_Z);
-        dessinerChunk(map, texture, i);
+        dessinerChunk(map, texture, i, pos, cible);
         glPopMatrix();
     }
 }

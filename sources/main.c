@@ -29,6 +29,10 @@ int main(int argc, char *argv[])
     ecran = SDL_SetVideoMode(FENETRE_LARG, FENETRE_HAUT, 32, SDL_OPENGL);
     SDL_WM_SetCaption("Minecraft-Like", NULL);
 
+    if(ecran == NULL)
+        printf("Erreur lors de la création de la fenêtre\n");
+
+
     initOK = glewInit();
 
     if(initOK != GLEW_OK)
@@ -36,18 +40,7 @@ int main(int argc, char *argv[])
         printf("impossible d'initialiser GLEW : %s\n", glewGetErrorString(initOK));
     }
 
-    /*PFNGLGENBUFFERSARBPROC glGenBuffers;
-
-    const char * glVersion = (const char *) glGetString(GL_EXTENSIONS);
-
-    printf("Version : %s\n", glVersion);
-
-    glGenBuffers = SDL_GL_GetProcAddress("glGenBuffersARB");*/
-
     SDL_EnableUNICODE(1);
-
-    if(ecran == NULL)
-        printf("Erreur lors de la création de la fenêtre\n");
 
     jouer();
 

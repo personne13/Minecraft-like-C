@@ -5,6 +5,11 @@
 
 void attribuerCube(Pave *cube, double dimension)
 {
+    int i = 0;
+    float tabVertex[72];
+    float tabTexture[48];
+    int xTex = 0, yTex = 0;
+
     cube->face[0].bas1.x = dimension;
     cube->face[0].bas1.y = (double)0.0;
     cube->face[0].bas1.z = (double)0.0;
@@ -105,6 +110,45 @@ void attribuerCube(Pave *cube, double dimension)
     cube->face[5].haut2.x = dimension;
     cube->face[5].haut2.y = dimension;
     cube->face[5].haut2.z = dimension;
+
+    glGenBuffers(1, &cube->IDVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, cube->IDVBO);
+    glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(float) + 48 * sizeof(float), NULL, GL_STATIC_DRAW);
+
+    for(i = 0; i < 6; i++)
+    {
+        tabVertex[12 * i] = cube->face[i].bas1.x;
+        tabVertex[12 * i + 1] = cube->face[i].bas1.y;
+        tabVertex[12 * i + 2] = cube->face[i].bas1.z;
+        tabVertex[12 * i + 3] = cube->face[i].bas2.x;
+        tabVertex[12 * i + 4] = cube->face[i].bas2.y;
+        tabVertex[12 * i + 5] = cube->face[i].bas2.z;
+        tabVertex[12 * i + 6] = cube->face[i].haut2.x;
+        tabVertex[12 * i + 7] = cube->face[i].haut2.y;
+        tabVertex[12 * i + 8] = cube->face[i].haut2.z;
+        tabVertex[12 * i + 9] = cube->face[i].haut1.x;
+        tabVertex[12 * i + 10] = cube->face[i].haut1.y;
+        tabVertex[12 * i + 11] = cube->face[i].haut1.z;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, 0, 72 * sizeof(float), tabVertex);
+
+    for(i = 0; i < 6; i++)
+    {
+        yTex = cube->face[i].IdTexture / 16;
+        xTex = cube->face[i].IdTexture - (16 * yTex);
+
+        tabTexture[8 * i] = (float)xTex / 16;
+        tabTexture[8 * i + 1] = (float)(16 - (yTex + 1)) / 16;
+        tabTexture[8 * i + 2] = (float)(xTex + 1) / 16;
+        tabTexture[8 * i + 3] = (float)(16 - (yTex + 1)) / 16;
+        tabTexture[8 * i + 4] = (float)(xTex + 1) / 16;
+        tabTexture[8 * i + 5] = (float)(16 - yTex) / 16;
+        tabTexture[8 * i + 6] = (float)xTex / 16;
+        tabTexture[8 * i + 7] = (float)(16 - yTex) / 16;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, 72 * sizeof(float), 48 * sizeof(float), tabTexture);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void attribuerPersonnage(Mob *personnage, GLuint tex)

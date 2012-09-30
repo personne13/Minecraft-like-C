@@ -16,8 +16,7 @@ GLuint textureItem = 0;
 int largeurLettre[255] = {0};
 Commandes controls;
 Mob personnage;
-double angle = 0, angleSkyBox = 0;
-Pave SkyBox;
+double angle = 0;
 Pave mainPersonnage;
 Map map;
 
@@ -77,8 +76,6 @@ void jouer()
     chargerMap("map/testMap", &map, posObjet.x, posObjet.z, CHUNK_MEM);
     chargerBlocs("textures/blocs.info", cube, NOMBRE_ENTITE);//Fichier où se trouve les identifiants des textures des blocs
     chargerItems(items, "textures/items.info");
-
-    attribuerCube(&SkyBox, 5000);
 
     for(i = 0; i < NOMBRE_BLOCS; i++)
     {
@@ -263,7 +260,6 @@ void jouer()
 
         if(tpsActuel - tpsPrecedent > 15)
         {
-            angleSkyBox += 0.1;
             if(enJeu == 1)
                 deplacer(&map, &posObjet, &posCamera, ax, ay);
             Dessiner(&posCamera, &posObjet, ay, ax, &inv, textureTerrain, gui, textureTexte, blocActuel, modeDeJeu, enJeu, blocInvSelectionne, IDblocInvSelectionne, vision, quantiteSelectionnee);
@@ -312,18 +308,15 @@ void Dessiner(Point *direction, Point *position, double ay, double ax, Inventair
     glVertex3d(0,0,-1);
     glVertex3d(0,0,1);
 
-    glVertex3d(0,0,-1);
+    glVertex3d(0,0,1);
     glVertex3d(0.5,0,0.5);
 
-    glVertex3d(0,0,-1);
+    glVertex3d(0,0,1);
     glVertex3d(-0.5,0,0.5);
 
     glEnd();
 
     glPopMatrix();
-
-    glDisable(GL_BLEND);
-    glDisable(GL_TEXTURE_2D);
 
     glBegin(GL_LINES);//Les lignes du sol
 
@@ -341,12 +334,6 @@ void Dessiner(Point *direction, Point *position, double ay, double ax, Inventair
 
     glEnd();
 
-    glPushMatrix();
-    glRotated(angleSkyBox, 1, 0, 0);
-    glTranslated(-2500, -2500, -2500);
-    dessinerSkyBox(&SkyBox);
-    glPopMatrix();
-
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
     glColor3ub(255,255,255);
@@ -356,9 +343,12 @@ void Dessiner(Point *direction, Point *position, double ay, double ax, Inventair
     dessinerPersonnage(personnage, angle, ay, ax);
     glPopMatrix();
 
-    dessinerMap(&map, texture, CHUNK_MEM);
+    dessinerMap(&map, texture, CHUNK_MEM, position, direction);
 
     dessinerGui(inv, gui, texture, tailleCase, blocActuel, modeDeJeu, enJeu, blocInvSelectionne, IDblocInvSelectionne, quantiteSelectionnee);
+
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
 
     glFlush();
     SDL_GL_SwapBuffers();
@@ -523,7 +513,7 @@ double modulo(double nombre1,double nombre2)//Modulo entre variables de type dou
 
 void regarder(Point *position, Point *direction)
 {
-    //gluLookAt(12, 3, 0, direction.x, direction.y, direction.z, 0, 1, 0);
+    //gluLookAt(-30, 10, -30, direction->x, direction->y, direction->z, 0, 1, 0);
     gluLookAt(position->x, position->y, position->z, direction->x, direction->y, direction->z, 0, 1, 0);
 }
 
@@ -1617,6 +1607,7 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
             glOrtho(0,FENETRE_LARG,0,FENETRE_HAUT, -1, 10000);//2D
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
+            glEnable(GL_TEXTURE_2D);
 
             if(menuActuel == 1)
             {
@@ -1657,6 +1648,7 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
 
             glFlush();
             SDL_GL_SwapBuffers();
+            glDisable(GL_TEXTURE_2D);
             tpsPrecedent = tpsActuel;
         }
         else

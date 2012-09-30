@@ -1,16 +1,12 @@
 #ifndef CONSTANTES
 #define CONSTANTES
 
+    #include <SDL.h>
+    #include <SDL/SDL_image.h>
     #include <GL/glew.h>
-    #include <GL/glext.h>
-    //#include <GL/gl.h>
-    //#include <GL/glu.h>
 
     #include <stdio.h>
     #include <stdlib.h>
-    #include <SDL.h>
-    #include <SDL/SDL_ttf.h>
-    #include <SDL/SDL_image.h>
     #include <math.h>
     #include <string.h>
 
@@ -59,6 +55,7 @@
     {
         Face face[6];
         int ID;
+        GLuint IDVBO;
     };
 
     typedef struct Item Item;
