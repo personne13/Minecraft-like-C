@@ -1,58 +1,68 @@
 nombreBoutons = 10
+boutons0.type = 1
 boutons0.weight = 270
 boutons0.height = 35
 boutons0.posX = 125
 boutons0.posY = 130
 boutons0.texte = Music:
 
+boutons1.type = 1
 boutons1.weight = 270
 boutons1.height = 35
 boutons1.posX = 405
 boutons1.posY = 130
 boutons1.texte = Sound:
 
+boutons2.type = 0
 boutons2.weight = 270
 boutons2.height = 35
 boutons2.posX = 125
 boutons2.posY = 175
 boutons2.texte = Invert Mouse: OFF
 
+boutons3.type = 1
 boutons3.weight = 270
 boutons3.height = 35
 boutons3.posX = 405
 boutons3.posY = 175
 boutons3.texte = Sensivity:
 
+boutons4.type = 1
 boutons4.weight = 270
 boutons4.height = 35
 boutons4.posX = 125
 boutons4.posY = 220
-boutons4.texte = Fov: Normal
+boutons4.texte = FOV: 000
 
+boutons5.type = 0
 boutons5.weight = 270
 boutons5.height = 35
 boutons5.posX = 405
 boutons5.posY = 220
 boutons5.texte = Difficulty: Hard
 
+boutons6.type = 0
 boutons6.weight = 400
 boutons6.height = 35
 boutons6.posX = 200
 boutons6.posY = 295
 boutons6.texte = Video Settings...
 
+boutons7.type = 0
 boutons7.weight = 400
 boutons7.height = 35
 boutons7.posX = 200
 boutons7.posY = 340
 boutons7.texte = Controls...
 
+boutons8.type = 0
 boutons8.weight = 400
 boutons8.height = 35
 boutons8.posX = 200
 boutons8.posY = 385
 boutons8.texte = Language...
 
+boutons9.type = 0
 boutons9.weight = 400
 boutons9.height = 35
 boutons9.posX = 200

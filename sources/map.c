@@ -2,6 +2,7 @@
 #include "map.h"
 #include "input.h"
 #include "jeu.h"
+#include "bruits.h"
 
 #define BUFFER_OFFSET(a) ((char*)NULL + (a))
 
@@ -11,8 +12,8 @@ extern float pos;
 int chargerBlocs(char *chemin, Pave *bloc, int nombreBlocs)//Chargement des textures des blocs à l'aide du fichier "bloc.info"
 {
     FILE *fichier = NULL;
-    int i;
-    double versionFichier = 0, versionActuelle = 0.01;
+    int i, j;
+    double versionFichier = 0, versionActuelle = 0.02;
 
     fichier = fopen(chemin, "r+");
 
@@ -26,6 +27,10 @@ int chargerBlocs(char *chemin, Pave *bloc, int nombreBlocs)//Chargement des text
                 fscanf(fichier, "%d", &bloc[i].ID);
                 fgetc(fichier);
                 fscanf(fichier, "%d %d %d %d %d %d", &bloc[i].face[0].IdTexture, &bloc[i].face[1].IdTexture, &bloc[i].face[2].IdTexture, &bloc[i].face[3].IdTexture, &bloc[i].face[4].IdTexture, &bloc[i].face[5].IdTexture);
+                for(j = 0; j < 6; j++)
+                {
+                    fscanf(fichier, "%f %f %f", &bloc[i].face[j].couleur.r, &bloc[i].face[j].couleur.v, &bloc[i].face[j].couleur.b);
+                }
             }
         }
         else
@@ -48,7 +53,10 @@ void dessinerChunk(Map *map, GLuint texture, int indiceChunk, Point *pos, Point 
 {
     static int x, y, z, i, indiceChunkCache = 0;
     static char facesAffichables[6] = {1, 1, 1, 1, 1, 1};
+    static double distanceFace[4] = {0};
+    static double moyenneDistances = 0;
     static double xCube = 0, yCube = 0, zCube = 0;
+    static double faceX = 0, faceY = 0, faceZ = 0;
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -63,12 +71,37 @@ void dessinerChunk(Map *map, GLuint texture, int indiceChunk, Point *pos, Point 
             {
                 if(map->chunk[indiceChunk].entite[x][y][z] != 0 && map->chunk[indiceChunk].entite[x][y][z] != 20 && map->chunk[indiceChunk].entite[x][y][z] != 18)//Affichage des blocs non-transparents
                 {
-                    xCube = cube[map->chunk[indiceChunk].entite[x][y][z]].face[0].bas1.x + map->chunk[indiceChunk].posX * TAILLECHUNK_X + x;
-                    yCube = cube[map->chunk[indiceChunk].entite[x][y][z]].face[0].bas1.y + y;
-                    zCube = cube[map->chunk[indiceChunk].entite[x][y][z]].face[0].bas1.z + map->chunk[indiceChunk].posZ * TAILLECHUNK_Z + z;
+                    xCube = 0.5 + map->chunk[indiceChunk].posX * TAILLECHUNK_X + x;
+                    yCube = 0.5 + y;
+                    zCube = 0.5 + map->chunk[indiceChunk].posZ * TAILLECHUNK_Z + z;
 
                     if((xCube - pos->x) * (xCube - pos->x) + (yCube - pos->y) * (yCube - pos->y) + (zCube - pos->z) * (zCube - pos->z) > (xCube - cible->x) * (xCube - cible->x) + (yCube - cible->y) * (yCube - cible->y) + (zCube - cible->z) * (zCube - cible->z))
                     {
+                        if(pos->y >= yCube)
+                            facesAffichables[4] = 0;
+                        else
+                            facesAffichables[5] = 0;
+
+                        moyenneDistances = 0;
+
+                        for(i = 0; i < 4; i++)
+                        {
+                            faceY = (cube[map->chunk[indiceChunk].entite[x][y][z]].face[i].bas1.y + cube[map->chunk[indiceChunk].entite[x][y][z]].face[i].haut1.y) / 2 + y;
+                            faceX = (cube[map->chunk[indiceChunk].entite[x][y][z]].face[i].bas1.x + cube[map->chunk[indiceChunk].entite[x][y][z]].face[i].haut2.x) / 2 + x + map->chunk[indiceChunk].posX * TAILLECHUNK_X;
+                            faceZ = (cube[map->chunk[indiceChunk].entite[x][y][z]].face[i].bas1.z + cube[map->chunk[indiceChunk].entite[x][y][z]].face[i].haut2.z) / 2 + z + map->chunk[indiceChunk].posZ * TAILLECHUNK_Z;
+
+                            distanceFace[i] = (faceX - pos->x) * (faceX - pos->x) + (faceY - pos->y) * (faceY - pos->y) + (faceZ - pos->z) * (faceZ - pos->z);
+                            moyenneDistances += distanceFace[i];
+                        }
+
+                        moyenneDistances /= 4;
+
+                        for(i = 0; i < 4; i++)
+                        {
+                            if(distanceFace[i] > moyenneDistances)
+                                facesAffichables[i] = 0;
+                        }
+
                         glPushMatrix();
                         glTranslated(x, y, z);
 
@@ -359,9 +392,12 @@ void dessinerCubeVBO(int IDCube, char facesAffichables[6])
 
     glVertexPointer(3, GL_FLOAT, 0, BUFFER_OFFSET(0));
     glTexCoordPointer(2, GL_FLOAT, 0, BUFFER_OFFSET(72 * sizeof(float)));
+    glColorPointer(3, GL_FLOAT, 0, BUFFER_OFFSET(72 * sizeof(float) + 48 * sizeof(float)));
 
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
 
     for(i = 0; i < 6; i++)
     {
@@ -370,9 +406,10 @@ void dessinerCubeVBO(int IDCube, char facesAffichables[6])
             glDrawArrays(GL_QUADS, i * 4, 4);
         }
     }
-
-    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
 }
 
 void initChunk(Chunk *chunk)//Met le tableau à zéro
@@ -488,7 +525,7 @@ void sauvegarderChunk(char *cheminDossier, Chunk *chunk)
         int x, y, z;
 
         sprintf(cheminChunk, "%s/chunk_%d.%d.mcrl", cheminDossier, (int)chunk->posX, (int)chunk->posZ);
-        fichier = fopen(cheminChunk, "w");
+        fichier = fopen(cheminChunk, "w+");
 
         if(fichier != NULL)
         {
@@ -567,13 +604,93 @@ void gererChunk(Map *map, char *cheminDossier, double posX, double posZ)
     }
 }
 
+Uint32 obtenirPixelSurface(SDL_Surface *surface, int x, int y)
+{
+    int nbOctetsParPixel = surface->format->BytesPerPixel;
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * nbOctetsParPixel;
+
+    switch(nbOctetsParPixel)
+    {
+        case 1:
+            return *p;
+
+        case 2:
+            return *(Uint16 *)p;
+
+        case 3:
+            if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                return p[0] << 16 | p[1] << 8 | p[2];
+            else
+                return p[0] | p[1] << 8 | p[2] << 16;
+
+        case 4:
+            return *(Uint32 *)p;
+        default:
+            return 0;
+    }
+}
+
+int obtenirGrisPixel(SDL_Surface *surface, Uint32 pixel)
+{
+    Uint8 gris;
+    Uint8 a;
+    SDL_GetRGBA(pixel, surface->format, &gris, &gris, &gris, &a);
+
+    return (int)gris;
+}
+
 void creerChunk(char *cheminChunk, int chunkX, int chunkZ)
 {
+    SDL_Surface *heightMap = NULL;
     int x, y, z;
-    FILE *fichier = NULL;
-    fichier = fopen(cheminChunk, "w+");
+    int valeurGris = 0;
+    Chunk nouveauChunk;
 
-    if(fichier != NULL)
+    initChunk(&nouveauChunk);
+
+    heightMap = IMG_Load("map/testMap/heightMap.bmp");
+    if(heightMap == NULL)
+    {
+        printf("HeightMap introuvable\n");
+        exit(EXIT_FAILURE);
+    }
+
+    nouveauChunk.posX = chunkX;
+    nouveauChunk.posZ = chunkZ;
+
+    for(x = 0; x < TAILLECHUNK_X; x++)
+    {
+        for(z = 0; z < TAILLECHUNK_Z; z++)
+        {
+            if(chunkX >= 0 && chunkZ >= 0)
+            {
+                valeurGris = obtenirGrisPixel(heightMap, obtenirPixelSurface(heightMap, x + chunkX * TAILLECHUNK_X, z + chunkZ * TAILLECHUNK_Z));
+            }
+            if(valeurGris > nouveauChunk.hauteurMax)
+            {
+                nouveauChunk.hauteurMax = valeurGris;
+            }
+            for(y = 0; y < valeurGris; y++)
+            {
+                if(y + 5 < valeurGris)
+                {
+                    nouveauChunk.entite[x][y][z] = 1;
+                }
+                else if(y + 1 < valeurGris)
+                {
+                    nouveauChunk.entite[x][y][z] = 3;
+                }
+                else
+                {
+                    nouveauChunk.entite[x][y][z] = 2;
+                }
+            }
+        }
+    }
+
+    nouveauChunk.modifie = 1;
+
+    /*if(fichier != NULL)
     {
         fprintf(fichier, "%d %d\n", chunkX, chunkZ);
         fprintf(fichier, "0\n");
@@ -595,5 +712,76 @@ void creerChunk(char *cheminChunk, int chunkX, int chunkZ)
         printf("Impossible de créer le fichier : %s\n", cheminChunk);
     }
 
-    fclose(fichier);
+    fclose(fichier);*/
+
+    sauvegarderChunk("map/testMap", &nouveauChunk);
+
+    SDL_FreeSurface(heightMap);
+}
+
+void definirPixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+{
+    int opp = surface->format->BytesPerPixel;
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * opp;
+
+    switch(opp)
+    {
+        case 1:
+            *p = pixel;
+            break;
+
+        case 2:
+            *(Uint16 *) p = pixel;
+            break;
+
+        case 3:
+            if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            {
+                p[0] = (pixel >> 16) & 0xff;
+                p[1] = (pixel >> 8) & 0xff;
+                p[2] = pixel & 0xff;
+            }
+            else
+            {
+                p[0] = pixel & 0xff;
+                p[1] = (pixel >> 8) & 0xff;
+                p[2] = (pixel >> 16) & 0xff;
+            }
+            break;
+
+        case 4:
+            * (Uint32 *) p = pixel;
+            break;
+    }
+}
+
+Uint32 obtenirCouleur(double rouge, double vert, double bleu)
+{
+   return (((int) (rouge * 255)) << 16) + (((int) (vert * 255)) << 8) + (int) (bleu * 255);
+}
+
+int obtenirPixel(int x, int y)
+{
+    double valeur = bruit_coherent2D(x, y, 0.5);
+    return obtenirCouleur(valeur, valeur, valeur);
+}
+
+int creerHeightMap(int x, int y, int hauteurMax, SDL_Surface **heightMap)
+{
+    int i, j;
+
+    (*heightMap) = SDL_CreateRGBSurface(SDL_HWSURFACE, x, y, 32, 0, 0, 0, 0);
+
+    initBruit2D(x + 1, y + 1, 18, 2);
+
+    for(i = 0; i < x; i++)
+    {
+        for(j = 0; j < y; j++)
+        {
+            definirPixel(*heightMap, i, j, obtenirPixel(i, j));
+        }
+    }
+    destroyBruit2D();
+
+    return 1;
 }

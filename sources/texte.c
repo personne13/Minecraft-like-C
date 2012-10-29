@@ -79,45 +79,48 @@ void afficherTexte(GLuint texture, Texte texte, int *largeurLettre, double taill
 
     glPushMatrix();
 
-    texTexte.posX = x;
-    texTexte.posY = y + 2;
-
-    glColor3ub(50, 50, 50);
-
-    for(i = 0; i < texte.nbCara; i++)
+    if(texte.ombre == 1)
     {
-        posY = texte.chaine[i] / 16;
-        posX = texte.chaine[i] - posY * 16;
+        texTexte.posX = x;
+        texTexte.posY = y + 2;
 
-        texTexte.posTexX = posX * 16;
-        texTexte.posTexY = posY * 16;
+        glColor3ub(50, 50, 50);
 
-        texTexte.posX += texTexte.weight + 2;
-
-        texTexte.weight = largeurLettre[(int)texte.chaine[i]];
-
-        texTexte.posX += 2;
-
-        if(texte.chaine[i] != ' ' && texte.chaine[i] != 0)
+        for(i = 0; i < texte.nbCara; i++)
         {
-            glEnable(GL_BLEND);
-            glBindTexture(GL_TEXTURE_2D, texTexte.IDtex);
+            posY = texte.chaine[i] / 16;
+            posX = texte.chaine[i] - posY * 16;
 
-            glBegin(GL_QUADS);
-            glTexCoord2d((double)texTexte.posTexX / texTexte.wMax, (double)(texTexte.hMax - texTexte.posTexY) / texTexte.hMax);
-            glVertex2d(texTexte.posX, FENETRE_HAUT - texTexte.posY);
-            glTexCoord2d((double)(texTexte.posTexX + texTexte.weight) / texTexte.wMax, (double)(texTexte.hMax - texTexte.posTexY) / texTexte.hMax);
-            glVertex2d(texTexte.posX + (texTexte.weight * taillePolice), FENETRE_HAUT - texTexte.posY);
-            glTexCoord2d((double)(texTexte.posTexX + texTexte.weight) / texTexte.wMax, (double)(texTexte.hMax - (texTexte.posTexY + texTexte.height)) / texTexte.hMax);
-            glVertex2d(texTexte.posX + (texTexte.weight * taillePolice), (FENETRE_HAUT - texTexte.posY) - (texTexte.height * taillePolice));
-            glTexCoord2d((double)(texTexte.posTexX) / texTexte.wMax, (double)(texTexte.hMax - (texTexte.posTexY + texTexte.height)) / texTexte.hMax);
-            glVertex2d(texTexte.posX, (FENETRE_HAUT - texTexte.posY) - (texTexte.height * taillePolice));
-            glEnd();
+            texTexte.posTexX = posX * 16;
+            texTexte.posTexY = posY * 16;
 
-            glDisable(GL_BLEND);
+            texTexte.posX += texTexte.weight + 2;
+
+            texTexte.weight = largeurLettre[(int)texte.chaine[i]];
+
+            texTexte.posX += 2;
+
+            if(texte.chaine[i] != ' ' && texte.chaine[i] != 0)
+            {
+                glEnable(GL_BLEND);
+                glBindTexture(GL_TEXTURE_2D, texTexte.IDtex);
+
+                glBegin(GL_QUADS);
+                glTexCoord2d((double)texTexte.posTexX / texTexte.wMax, (double)(texTexte.hMax - texTexte.posTexY) / texTexte.hMax);
+                glVertex2d(texTexte.posX, FENETRE_HAUT - texTexte.posY);
+                glTexCoord2d((double)(texTexte.posTexX + texTexte.weight) / texTexte.wMax, (double)(texTexte.hMax - texTexte.posTexY) / texTexte.hMax);
+                glVertex2d(texTexte.posX + (texTexte.weight * taillePolice), FENETRE_HAUT - texTexte.posY);
+                glTexCoord2d((double)(texTexte.posTexX + texTexte.weight) / texTexte.wMax, (double)(texTexte.hMax - (texTexte.posTexY + texTexte.height)) / texTexte.hMax);
+                glVertex2d(texTexte.posX + (texTexte.weight * taillePolice), (FENETRE_HAUT - texTexte.posY) - (texTexte.height * taillePolice));
+                glTexCoord2d((double)(texTexte.posTexX) / texTexte.wMax, (double)(texTexte.hMax - (texTexte.posTexY + texTexte.height)) / texTexte.hMax);
+                glVertex2d(texTexte.posX, (FENETRE_HAUT - texTexte.posY) - (texTexte.height * taillePolice));
+                glEnd();
+
+                glDisable(GL_BLEND);
+            }
+
+            texTexte.posX -= 2;
         }
-
-        texTexte.posX -= 2;
     }
 
     glTranslated(0, 0, 1);

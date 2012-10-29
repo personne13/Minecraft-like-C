@@ -1,28 +1,33 @@
 nombreBoutons = 5
+boutons0.type = 0
 boutons0.weight = 400
 boutons0.height = 35
 boutons0.posX = 200
 boutons0.posY = 183
 boutons0.texte = Back to game
 
+boutons1.type = 0
 boutons1.weight = 195
 boutons1.height = 35
 boutons1.posX = 200
 boutons1.posY = 228
 boutons1.texte = Achievments
 
+boutons2.type = 0
 boutons2.weight = 195
 boutons2.height = 35
 boutons2.posX = 405
 boutons2.posY = 228
 boutons2.texte = Statistics
 
+boutons3.type = 0
 boutons3.weight = 400
 boutons3.height = 35
 boutons3.posX = 200
 boutons3.posY = 308
 boutons3.texte = Options...
 
+boutons4.type = 0
 boutons4.weight = 400
 boutons4.height = 35
 boutons4.posX = 200

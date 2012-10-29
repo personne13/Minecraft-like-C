@@ -8,6 +8,7 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <math.h>
+    #include <time.h>
     #include <string.h>
 
     #define FENETRE_LARG 800
@@ -18,7 +19,9 @@
     #define NOMBRE_ENTITE 124
     #define NOMBRE_BLOCS 124
     #define NOMBRE_ITEMS 148
-    #define CHUNK_MEM 5
+    #define CHUNK_MEM 3
+
+    enum {BOUTON_TYPE_STANDARD, BOUTON_TYPE_VARIATION};
 
     ///Déclaration des structures
 
@@ -28,11 +31,18 @@
         double x, y, z;
     };
 
+    typedef struct Couleur Couleur;
+    struct Couleur
+    {
+        float r, v, b;
+    };
+
     typedef struct Face Face;
     struct Face
     {
         Point bas1, bas2, haut1, haut2; //Les quatres points de la face
         int IdTexture;
+        Couleur couleur;
     };
 
     typedef struct Chunk Chunk;
@@ -49,6 +59,7 @@
     {
         Chunk *chunk;
     };
+
 
     typedef struct Pave Pave;//Structure bloc
     struct Pave
@@ -100,6 +111,7 @@
     {
         char *chaine;
         int nbCara;
+        int ombre;
     };
 
     typedef struct Bouton Bouton;
@@ -108,13 +120,16 @@
         GLuint IDtex;
         int posX, posY;
         int weight, height;
-        int posTex1DebX, posTex1DebY;//point haut-gauche de la texture 1
+        int posTex1DebX, posTex1DebY;//point haut-gauche de la texture 1 (standard, non sélectionné)
         int posTex1FinX, posTex1FinY;//point bas-droite de la texture 1
-        int posTex2DebX, posTex2DebY;//point haut-gauche de la texture 2
+        int posTex2DebX, posTex2DebY;//point haut-gauche de la texture 2 (standard, sélectionné)
         int posTex2FinX, posTex2FinY;//point bas-droite de la texture 2
+        int posTex3DebX, posTex3DebY;//point haut-gauche de la texture 3 (bouton variation)
+        int posTex3FinX, posTex3FinY;//point bas-droite de la texture 3
         int wMax, hMax;
         int selectionne;
         Texte texte;
+        int type;
     };
 
     typedef struct Mob Mob;

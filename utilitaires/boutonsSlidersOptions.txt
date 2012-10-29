@@ -1,0 +1,28 @@
+nombreBoutons = 4
+boutons0.type = 0
+boutons0.weight = 10
+boutons0.height = 35
+boutons0.posX = 125
+boutons0.posY = 130
+boutons0.texte = NOTHING
+
+boutons1.type = 0
+boutons1.weight = 10
+boutons1.height = 35
+boutons1.posX = 405
+boutons1.posY = 130
+boutons1.texte = NOTHING
+
+boutons2.type = 0
+boutons2.weight = 10
+boutons2.height = 35
+boutons2.posX = 405
+boutons2.posY = 175
+boutons2.texte = NOTHING
+
+boutons3.type = 0
+boutons3.weight = 10
+boutons3.height = 35
+boutons3.posX = 125
+boutons3.posY = 220
+boutons3.texte = NOTHING

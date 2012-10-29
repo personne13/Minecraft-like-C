@@ -29,7 +29,7 @@
     void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255]);
     void afficherBouton(Bouton bt, GLuint texTexte);
     void attribuerTexBouton(Bouton *bouton, GLuint gui[]);
-    void collisionBouton(Bouton *bouton);
+    void collisionBouton(Bouton *bouton, int slider);
     int recupererLargeurChaine(Texte chaine, int largeurLettre[255]);
     int eventCommande(int *touche);
     void attribuerNomBoutonControle(Texte *nomBouton, int valeur);

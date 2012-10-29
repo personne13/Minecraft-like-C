@@ -8,6 +8,7 @@ void attribuerCube(Pave *cube, double dimension)
     int i = 0;
     float tabVertex[72];
     float tabTexture[48];
+    float tabCouleur[72];
     int xTex = 0, yTex = 0;
 
     cube->face[0].bas1.x = dimension;
@@ -111,9 +112,10 @@ void attribuerCube(Pave *cube, double dimension)
     cube->face[5].haut2.y = dimension;
     cube->face[5].haut2.z = dimension;
 
+
     glGenBuffers(1, &cube->IDVBO);
     glBindBuffer(GL_ARRAY_BUFFER, cube->IDVBO);
-    glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(float) + 48 * sizeof(float), NULL, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 72 * sizeof(float) + 48 * sizeof(float) + 72 * sizeof(float), NULL, GL_STATIC_DRAW);
 
     for(i = 0; i < 6; i++)
     {
@@ -147,6 +149,23 @@ void attribuerCube(Pave *cube, double dimension)
         tabTexture[8 * i + 7] = (float)(16 - yTex) / 16;
     }
     glBufferSubData(GL_ARRAY_BUFFER, 72 * sizeof(float), 48 * sizeof(float), tabTexture);
+
+    for(i = 0; i < 6; i++)
+    {
+        tabCouleur[12 * i] = cube->face[i].couleur.r;
+        tabCouleur[12 * i + 1] = cube->face[i].couleur.v;
+        tabCouleur[12 * i + 2] = cube->face[i].couleur.b;
+        tabCouleur[12 * i + 3] = cube->face[i].couleur.r;
+        tabCouleur[12 * i + 4] = cube->face[i].couleur.v;
+        tabCouleur[12 * i + 5] = cube->face[i].couleur.b;
+        tabCouleur[12 * i + 6] = cube->face[i].couleur.r;
+        tabCouleur[12 * i + 7] = cube->face[i].couleur.v;
+        tabCouleur[12 * i + 8] = cube->face[i].couleur.b;
+        tabCouleur[12 * i + 9] = cube->face[i].couleur.r;
+        tabCouleur[12 * i + 10] = cube->face[i].couleur.v;
+        tabCouleur[12 * i + 11] = cube->face[i].couleur.b;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, 72 * sizeof(float) + 48 * sizeof(float), 72 * sizeof(float), tabCouleur);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

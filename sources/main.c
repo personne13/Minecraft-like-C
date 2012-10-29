@@ -2,29 +2,30 @@
 #include "input.h"
 #include "jeu.h"
 #include "editeur.h"
+#include "map.h"
 
 Input event;
 SDL_Surface *ecran = NULL;
+int FOV = 70;
 
 int main(int argc, char *argv[])
 {
     GLenum initOK;
-    //Démarrage de l'application pour le mode d'édition.
-    /*SDL_Init(SDL_INIT_VIDEO);
-    ecran = SDL_SetVideoMode(FENETRE_LARG, FENETRE_HAUT, 32, SDL_HWSURFACE);
-    SDL_WM_SetCaption("Minecraft-Like", NULL);
+    /*SDL_Surface *heightMap = NULL;
 
-    if(ecran == NULL)
-        printf("Erreur lors de la création de la fenêtre\n");
-
-    editerMap();
+    creerHeightMap(512, 512, TAILLECHUNK_Y, &heightMap);
+    if(heightMap == NULL)
+    {
+        printf("erreur\n");
+        exit(0);
+    }
+    SDL_SaveBMP(heightMap, "map/testMap/heightMap.bmp");
 
     SDL_FreeSurface(ecran);
     ecran = NULL;
 
     SDL_Quit();*/
 
-    //Démarrage de l'application pour le mode d'exploration.
     SDL_Init(SDL_INIT_VIDEO);
     ecran = SDL_SetVideoMode(FENETRE_LARG, FENETRE_HAUT, 32, SDL_OPENGL);
     SDL_WM_SetCaption("Minecraft-Like", NULL);

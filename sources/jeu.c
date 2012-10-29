@@ -7,6 +7,7 @@
 #include "texte.h"
 #include "options.h"
 
+extern int FOV;
 extern Input event;
 Pave cube[NOMBRE_BLOCS];//Tableau pour stocker chaque cube du jeu
 Item items[NOMBRE_ITEMS];
@@ -47,9 +48,9 @@ void jouer()
         largeurLettre[i] = 16;
     }
 
-    posObjet.y = 1.62;
-    posObjet.x = 0;
-    posObjet.z = 0;
+    posObjet.y = 10;
+    posObjet.x = -15;
+    posObjet.z = -15;
 
     posCamera.x = 0;
     posCamera.y = 1.62;
@@ -57,7 +58,7 @@ void jouer()
 
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
-    gluPerspective(69,(double)FENETRE_LARG/FENETRE_HAUT,0.01,10000);
+    gluPerspective(FOV,(double)FENETRE_LARG/FENETRE_HAUT,0.01,10000);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
 
@@ -289,7 +290,7 @@ void Dessiner(Point *direction, Point *position, double ay, double ax, Inventair
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    gluPerspective(69,(double)FENETRE_LARG/FENETRE_HAUT,0.001,10000);//3D
+    gluPerspective(FOV,(double)FENETRE_LARG/FENETRE_HAUT,0.001,10000);//3D
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -339,7 +340,7 @@ void Dessiner(Point *direction, Point *position, double ay, double ax, Inventair
     glColor3ub(255,255,255);
 
     glPushMatrix();
-    glTranslated(2, 1, 2);
+    glTranslated(2, 1, -25);
     dessinerPersonnage(personnage, angle, ay, ax);
     glPopMatrix();
 
@@ -513,7 +514,7 @@ double modulo(double nombre1,double nombre2)//Modulo entre variables de type dou
 
 void regarder(Point *position, Point *direction)
 {
-    //gluLookAt(-30, 10, -30, direction->x, direction->y, direction->z, 0, 1, 0);
+    //gluLookAt(-30, 30, -30, direction->x, direction->y, direction->z, 0, 1, 0);
     gluLookAt(position->x, position->y, position->z, direction->x, direction->y, direction->z, 0, 1, 0);
 }
 
@@ -529,7 +530,7 @@ void tirer(Point A, Point B, Point *M)//Ancien test, à supprimer
 int collision(Point A, Point B, Map *map, Pave cible, Inventaire inv, int blocActuel, int placer)
 {
     static int face = -1, touche = 0;
-    double portee = 5;
+    double portee = 7;
     static int posX, posY, posZ;
     static int colChunkX = 0, colChunkZ = 0;
     static int chunkX = 0, chunkZ = 0;
@@ -610,7 +611,7 @@ int collision(Point A, Point B, Map *map, Pave cible, Inventaire inv, int blocAc
         }
     }
 
-    if(touche == 1 && distance < (int)portee)
+    if(touche == 1 && distance < portee * portee)
     {
         printf("pos : %d %d %d\n", posX, posY, posZ);
         printf("%d %d %d\n", xCol, yCol, zCol);
@@ -692,10 +693,10 @@ int determinerFaceCollision(Point A, Point B, Pave cible, double *portee)
 
         if(face != -1)
         {
-            distance[i] = sqrt((A.x - intersection.x)*(A.x - intersection.x) + (A.y - intersection.y)*(A.y - intersection.y) + (A.z - intersection.z)*(A.z - intersection.z));
+            distance[i] = (A.x - intersection.x)*(A.x - intersection.x) + (A.y - intersection.y)*(A.y - intersection.y) + (A.z - intersection.z)*(A.z - intersection.z);
         }
 
-        if(distance[i] < sqrt((B.x - intersection.x)*(B.x - intersection.x) + (B.y - intersection.y)*(B.y - intersection.y) + (B.z - intersection.z)*(B.z - intersection.z)))
+        if(distance[i] < (B.x - intersection.x)*(B.x - intersection.x) + (B.y - intersection.y)*(B.y - intersection.y) + (B.z - intersection.z)*(B.z - intersection.z))
         {
             face = -1;
             distance[i] = 50.0;
@@ -1390,11 +1391,20 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
     int saisieTouche = -1;
     int touche = 0;
     char c = 0;
+    int ecartSliderEvent = 0;
+    int sliderSelectionne = 0;
+    double proportionSlider = 0; // variable entre 0 et 1
+
     Bouton boutonsPrincipaux[5];
     Bouton boutonControles[14];
     Bouton boutonOptions[10];
     Texte fonctionBoutonsControles[13];
+    Bouton boutonsSlidersOptions[4];
 
+    for(i = 0; i < 4; i++)
+    {
+        attribuerTexBouton(&boutonsSlidersOptions[i], gui);
+    }
     for(i = 0; i < 5; i++)
     {
         attribuerTexBouton(&boutonsPrincipaux[i], gui);
@@ -1408,9 +1418,19 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
         attribuerTexBouton(&boutonControles[i], gui);
     }
 
+    recupererCoordonneesBoutons("utilitaires/boutonsSlidersOptions.txt", boutonsSlidersOptions);
     recupererCoordonneesBoutons("utilitaires/boutonsPrincipaux.txt", boutonsPrincipaux);
     recupererCoordonneesBoutons("utilitaires/boutonsOptions.txt", boutonOptions);
     recupererCoordonneesBoutons("utilitaires/boutonsControles.txt", boutonControles);
+
+    boutonOptions[0].texte.ombre = 0;
+    boutonOptions[1].texte.ombre = 0;
+    boutonOptions[3].texte.ombre = 0;
+    boutonOptions[4].texte.ombre = 0;
+
+    free(boutonOptions[4].texte.chaine);
+    boutonOptions[4].texte.chaine = malloc((boutonOptions[4].texte.nbCara + 1) * sizeof(char));
+    sprintf(boutonOptions[4].texte.chaine, "FOV: %d", FOV);
 
     for(i = 0; i < 13; i++)
     {
@@ -1442,6 +1462,8 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
 
     while(continuer)
     {
+        tpsActuel = SDL_GetTicks();//FPS
+
         updateEvents(&event);
 
         if(event.touche[SDLK_ESCAPE] == 1)
@@ -1461,21 +1483,117 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
         {
             for(i = 0; i < 5; i++)
             {
-                collisionBouton(&boutonsPrincipaux[i]);
+                collisionBouton(&boutonsPrincipaux[i], 0);
             }
         }
         if(menuActuel == 2)
         {
             for(i = 0; i < 10; i++)
             {
-                collisionBouton(&boutonOptions[i]);
+                collisionBouton(&boutonOptions[i], 0);
+            }
+            for(i = 0; i < 4; i++)
+            {
+                collisionBouton(&boutonsSlidersOptions[i], 1);
             }
         }
         if(menuActuel == 3)
         {
             for(i = 0; i < 14; i++)
             {
-                collisionBouton(&boutonControles[i]);
+                collisionBouton(&boutonControles[i], 0);
+            }
+        }
+        if(event.souris[SDL_BUTTON_LEFT] == 1)
+        {
+            if(boutonsSlidersOptions[0].selectionne == 1)
+            {
+                if(ecartSliderEvent == 0)
+                {
+                    ecartSliderEvent = event.posX - boutonsSlidersOptions[0].posX;
+                }
+                boutonsSlidersOptions[0].posX = event.posX - ecartSliderEvent;
+
+                if(boutonsSlidersOptions[0].posX > boutonOptions[0].posX + boutonOptions[0].weight - boutonsSlidersOptions[0].weight)
+                {
+                    boutonsSlidersOptions[0].posX = boutonOptions[0].posX + boutonOptions[0].weight - boutonsSlidersOptions[0].weight;
+                }
+                if(boutonsSlidersOptions[0].posX < boutonOptions[0].posX)
+                {
+                    boutonsSlidersOptions[0].posX = boutonOptions[0].posX;
+                }
+            }
+            if(boutonsSlidersOptions[1].selectionne == 1)
+            {
+                if(ecartSliderEvent == 0)
+                {
+                    ecartSliderEvent = event.posX - boutonsSlidersOptions[1].posX;
+                }
+                boutonsSlidersOptions[1].posX = event.posX - ecartSliderEvent;
+
+                if(boutonsSlidersOptions[1].posX > boutonOptions[1].posX + boutonOptions[1].weight - boutonsSlidersOptions[1].weight)
+                {
+                    boutonsSlidersOptions[1].posX = boutonOptions[1].posX + boutonOptions[1].weight - boutonsSlidersOptions[1].weight;
+                }
+                if(boutonsSlidersOptions[1].posX < boutonOptions[1].posX)
+                {
+                    boutonsSlidersOptions[1].posX = boutonOptions[1].posX;
+                }
+            }
+            if(boutonsSlidersOptions[2].selectionne == 1)
+            {
+                if(ecartSliderEvent == 0)
+                {
+                    ecartSliderEvent = event.posX - boutonsSlidersOptions[2].posX;
+                }
+                boutonsSlidersOptions[2].posX = event.posX - ecartSliderEvent;
+
+                if(boutonsSlidersOptions[2].posX > boutonOptions[3].posX + boutonOptions[3].weight - boutonsSlidersOptions[2].weight)
+                {
+                    boutonsSlidersOptions[2].posX = boutonOptions[3].posX + boutonOptions[3].weight - boutonsSlidersOptions[2].weight;
+                }
+                if(boutonsSlidersOptions[2].posX < boutonOptions[3].posX)
+                {
+                    boutonsSlidersOptions[2].posX = boutonOptions[3].posX;
+                }
+            }
+            if(boutonsSlidersOptions[3].selectionne == 1)
+            {
+                if(ecartSliderEvent == 0)
+                {
+                    ecartSliderEvent = event.posX - boutonsSlidersOptions[3].posX;
+                }
+                boutonsSlidersOptions[3].posX = event.posX - ecartSliderEvent;
+
+                if(boutonsSlidersOptions[3].posX > boutonOptions[4].posX + boutonOptions[4].weight - boutonsSlidersOptions[3].weight)
+                {
+                    boutonsSlidersOptions[3].posX = boutonOptions[4].posX + boutonOptions[4].weight - boutonsSlidersOptions[3].weight;
+                }
+                if(boutonsSlidersOptions[3].posX < boutonOptions[4].posX)
+                {
+                    boutonsSlidersOptions[3].posX = boutonOptions[4].posX;
+                }
+                proportionSlider = (double)(boutonsSlidersOptions[3].posX - (double)boutonOptions[4].posX) / ((double)boutonOptions[4].weight - (double)boutonsSlidersOptions[3].weight);
+                FOV = 40 * proportionSlider + 70;
+                free(boutonOptions[4].texte.chaine);
+                boutonOptions[4].texte.chaine = malloc((boutonOptions[4].texte.nbCara + 1) * sizeof(char));
+                sprintf(boutonOptions[4].texte.chaine, "FOV: %d", FOV);
+            }
+        }
+        if(ecartSliderEvent != 0)
+        {
+            sliderSelectionne = 0;
+
+            for(i = 0; i < 4; i++)
+            {
+                if(boutonsSlidersOptions[i].selectionne == 1)
+                {
+                    sliderSelectionne = i + 1;
+                }
+            }
+            if(sliderSelectionne == 0)
+            {
+                ecartSliderEvent = 0;
             }
         }
         if(event.souris[SDL_BUTTON_LEFT] == 1)
@@ -1483,28 +1601,36 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
             if(saisieTouche == -1)
             {
                 if(boutonsPrincipaux[0].selectionne == 1)
+                {
                     continuer = 0;
+                }
                 if(boutonsPrincipaux[4].selectionne == 1)
+                {
                     continuer = 0;
+                }
                 if(boutonsPrincipaux[3].selectionne == 1)
                 {
                     menuActuel = 2;
                     boutonsPrincipaux[3].selectionne = 0;
+                    event.souris[SDL_BUTTON_LEFT] = 0;
                 }
                 if(boutonOptions[7].selectionne == 1)
                 {
                     menuActuel = 3;
                     boutonOptions[7].selectionne = 0;
+                    event.souris[SDL_BUTTON_LEFT] = 0;
                 }
                 if(boutonOptions[9].selectionne == 1)
                 {
                     menuActuel = 1;
                     boutonOptions[9].selectionne = 0;
+                    event.souris[SDL_BUTTON_LEFT] = 0;
                 }
                 if(boutonControles[13].selectionne == 1)
                 {
                     menuActuel = 2;
                     boutonControles[13].selectionne = 0;
+                    event.souris[SDL_BUTTON_LEFT] = 0;
                 }
 
                 for(i = 0; i < 13; i++)
@@ -1523,9 +1649,9 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
                         initialiserInput(&event);
                     }
                 }
-                event.souris[SDL_BUTTON_LEFT] = 0;
             }
         }
+
 
         if(saisieTouche != -1)
         {
@@ -1597,8 +1723,6 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
             }
         }
 
-        tpsActuel = SDL_GetTicks();//FPS
-
         if(tpsActuel - tpsPrecedent > 20)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1626,6 +1750,13 @@ void menu(GLuint texTexte, GLuint gui[], int largeurLettre[255])
                     glPushMatrix();
                     glTranslated(0, 0, -100);
                     afficherBouton(boutonOptions[i], texTexte);
+                    glPopMatrix();
+                }
+                for(i = 0; i < 4; i++)
+                {
+                    glPushMatrix();
+                    glTranslated(0, 0, -99);
+                    afficherBouton(boutonsSlidersOptions[i], texTexte);
                     glPopMatrix();
                 }
             }
@@ -1685,6 +1816,9 @@ int recupererCoordonneesBoutons(char *cheminFichier, Bouton *bouton)
 
     for(i = 0; i < nombreBoutons; i++)
     {
+        fscanf(fichier, "boutons%d.type = %d\n", &j, &variable);
+        bouton[j].type = variable;
+
         fscanf(fichier, "boutons%d.weight = %d\n", &j, &variable);
         bouton[j].weight = variable;
 
@@ -1699,25 +1833,33 @@ int recupererCoordonneesBoutons(char *cheminFichier, Bouton *bouton)
 
         fscanf(fichier, "boutons%d.texte = ", &j);
 
+        bouton[j].texte.nbCara = 0;
+
         do
         {
             fscanf(fichier, "%c", &c);
             if(c != '\n')
+            {
                 buffer[bouton[j].texte.nbCara] = c;
-
-            bouton[j].texte.nbCara++;
+                bouton[j].texte.nbCara++;
+            }
         }while(c != '\n');
         fscanf(fichier, "%c", &c);
 
-        bouton[j].texte.nbCara--;
-
-        bouton[j].texte.chaine = malloc((bouton[j].texte.nbCara + 1) * sizeof(char));
-        if(bouton[j].texte.chaine == NULL)
+        if(strcmp(buffer, "NOTHING") != 0)
         {
-            printf("Erreur d'allocation de mémoire\n");
-            exit(EXIT_FAILURE);
+            bouton[j].texte.chaine = malloc((bouton[j].texte.nbCara + 1) * sizeof(char));
+            if(bouton[j].texte.chaine == NULL)
+            {
+                printf("Erreur d'allocation de mémoire\n");
+                exit(EXIT_FAILURE);
+            }
+            sprintf(bouton[j].texte.chaine, "%s", buffer);
         }
-        sprintf(bouton[j].texte.chaine, "%s", buffer);
+        else
+        {
+            bouton[j].texte.nbCara = 0;
+        }
 
         for(h = 0; h < 128; h++)
             buffer[h] = 0;
@@ -1728,6 +1870,7 @@ int recupererCoordonneesBoutons(char *cheminFichier, Bouton *bouton)
 
 void attribuerTexBouton(Bouton *bouton, GLuint gui[])
 {
+    bouton->type = BOUTON_TYPE_STANDARD;
     bouton->selectionne = 0;
     bouton->IDtex = gui[0];
     bouton->wMax = 512;
@@ -1740,8 +1883,13 @@ void attribuerTexBouton(Bouton *bouton, GLuint gui[])
     bouton->posTex2DebY = 172;
     bouton->posTex2FinX = 399;
     bouton->posTex2FinY = 211;
+    bouton->posTex3DebX = 0;
+    bouton->posTex3DebY = 92;
+    bouton->posTex3FinX = 399;
+    bouton->posTex3FinY = 131;
     bouton->texte.nbCara = 0;
     bouton->texte.chaine = NULL;
+    bouton->texte.ombre = 1;
 }
 
 void afficherBouton(Bouton bt, GLuint texTexte)
@@ -1750,26 +1898,40 @@ void afficherBouton(Bouton bt, GLuint texTexte)
     glBindTexture(GL_TEXTURE_2D, bt.IDtex);
 
     glBegin(GL_QUADS);
-    if(bt.selectionne == 1)
+    if(bt.type == BOUTON_TYPE_STANDARD)
     {
-        glTexCoord2d((double)bt.posTex2DebX / bt.wMax, (double)(bt.hMax - bt.posTex2DebY) / bt.hMax);
-        glVertex2d(bt.posX, FENETRE_HAUT - bt.posY);
-        glTexCoord2d((double)bt.posTex2FinX / bt.wMax, (double)(bt.hMax - bt.posTex2DebY) / bt.hMax);
-        glVertex2d(bt.posX + bt.weight, FENETRE_HAUT - bt.posY);
-        glTexCoord2d((double)bt.posTex2FinX / bt.wMax, (double)(bt.hMax - bt.posTex2FinY) / bt.hMax);
-        glVertex2d(bt.posX + bt.weight, (FENETRE_HAUT - bt.posY) - bt.height);
-        glTexCoord2d((double)bt.posTex2DebX / bt.wMax, (double)(bt.hMax - bt.posTex2FinY) / bt.hMax);
-        glVertex2d(bt.posX, (FENETRE_HAUT - bt.posY) - bt.height);
+        if(bt.selectionne == 1)
+        {
+            glTexCoord2d((double)bt.posTex2DebX / bt.wMax, (double)(bt.hMax - bt.posTex2DebY) / bt.hMax);
+            glVertex2d(bt.posX, FENETRE_HAUT - bt.posY);
+            glTexCoord2d((double)bt.posTex2FinX / bt.wMax, (double)(bt.hMax - bt.posTex2DebY) / bt.hMax);
+            glVertex2d(bt.posX + bt.weight, FENETRE_HAUT - bt.posY);
+            glTexCoord2d((double)bt.posTex2FinX / bt.wMax, (double)(bt.hMax - bt.posTex2FinY) / bt.hMax);
+            glVertex2d(bt.posX + bt.weight, (FENETRE_HAUT - bt.posY) - bt.height);
+            glTexCoord2d((double)bt.posTex2DebX / bt.wMax, (double)(bt.hMax - bt.posTex2FinY) / bt.hMax);
+            glVertex2d(bt.posX, (FENETRE_HAUT - bt.posY) - bt.height);
+        }
+        else
+        {
+            glTexCoord2d((double)bt.posTex1DebX / bt.wMax, (double)(bt.hMax - bt.posTex1DebY) / bt.hMax);
+            glVertex2d(bt.posX, FENETRE_HAUT - bt.posY);
+            glTexCoord2d((double)bt.posTex1FinX / bt.wMax, (double)(bt.hMax - bt.posTex1DebY) / bt.hMax);
+            glVertex2d(bt.posX + bt.weight, FENETRE_HAUT - bt.posY);
+            glTexCoord2d((double)bt.posTex1FinX / bt.wMax, (double)(bt.hMax - bt.posTex1FinY) / bt.hMax);
+            glVertex2d(bt.posX + bt.weight, (FENETRE_HAUT - bt.posY) - bt.height);
+            glTexCoord2d((double)bt.posTex1DebX / bt.wMax, (double)(bt.hMax - bt.posTex1FinY) / bt.hMax);
+            glVertex2d(bt.posX, (FENETRE_HAUT - bt.posY) - bt.height);
+        }
     }
-    else
+    else if(bt.type == BOUTON_TYPE_VARIATION)
     {
-        glTexCoord2d((double)bt.posTex1DebX / bt.wMax, (double)(bt.hMax - bt.posTex1DebY) / bt.hMax);
+        glTexCoord2d((double)bt.posTex3DebX / bt.wMax, (double)(bt.hMax - bt.posTex3DebY) / bt.hMax);
         glVertex2d(bt.posX, FENETRE_HAUT - bt.posY);
-        glTexCoord2d((double)bt.posTex1FinX / bt.wMax, (double)(bt.hMax - bt.posTex1DebY) / bt.hMax);
+        glTexCoord2d((double)bt.posTex3FinX / bt.wMax, (double)(bt.hMax - bt.posTex3DebY) / bt.hMax);
         glVertex2d(bt.posX + bt.weight, FENETRE_HAUT - bt.posY);
-        glTexCoord2d((double)bt.posTex1FinX / bt.wMax, (double)(bt.hMax - bt.posTex1FinY) / bt.hMax);
+        glTexCoord2d((double)bt.posTex3FinX / bt.wMax, (double)(bt.hMax - bt.posTex3FinY) / bt.hMax);
         glVertex2d(bt.posX + bt.weight, (FENETRE_HAUT - bt.posY) - bt.height);
-        glTexCoord2d((double)bt.posTex1DebX / bt.wMax, (double)(bt.hMax - bt.posTex1FinY) / bt.hMax);
+        glTexCoord2d((double)bt.posTex3DebX / bt.wMax, (double)(bt.hMax - bt.posTex3FinY) / bt.hMax);
         glVertex2d(bt.posX, (FENETRE_HAUT - bt.posY) - bt.height);
     }
     glEnd();
@@ -1783,7 +1945,7 @@ void afficherBouton(Bouton bt, GLuint texTexte)
     }
 }
 
-void collisionBouton(Bouton *bouton)
+void collisionBouton(Bouton *bouton, int slider)
 {
     if(event.posX >= bouton->posX && event.posX <= bouton->posX + bouton->weight)
     {
@@ -1791,10 +1953,12 @@ void collisionBouton(Bouton *bouton)
         {
             bouton->selectionne = 1;
         }
-        else
-        bouton->selectionne = 0;
+        else if(slider == 0 || (event.souris[SDL_BUTTON_LEFT] == 0 && slider == 1))
+        {
+            bouton->selectionne = 0;
+        }
     }
-    else
+    else if(slider == 0 || (event.souris[SDL_BUTTON_LEFT] == 0 && slider == 1))
         bouton->selectionne = 0;
 }
 

@@ -15,5 +15,8 @@
     void gererChunk(Map *map, char *cheminDossier, double posX, double posZ);
     void libererChunk(Chunk *chunk);
     void creerChunk(char *cheminChunk, int chunkX, int chunkZ);
+    int creerHeightMap(int x, int y, int hauteurMax, SDL_Surface **heightMap);
+    Uint32 obtenirPixelSurface(SDL_Surface *surface, int x, int y);
+    int obtenirGrisPixel(SDL_Surface *surface, Uint32 pixel);
 
 #endif
